@@ -22,6 +22,7 @@ The app needs to be running in test mode before the tests can be run.
      
 2. `npm run test` This will create a test database w/ the schema and seed that database with test data. This runs the integration suite against the test app and database.
 
+
  
 ## Diesel
 
