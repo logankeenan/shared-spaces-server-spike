@@ -51,7 +51,7 @@ fn get_credentials() -> Credentials {
 
     let credentials = Credentials::new(
         mailgun_api_key.as_str(),
-        "mail.sharedspaces.app",
+        "cultivatedsoftware.com",
     );
     credentials
 }
