@@ -1,0 +1,23 @@
+{{#> layout_page}}
+    {{#*inline "page_content"}}
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <h1>Resend Confirmation Email?</h1>
+                    <form action="/registration/confirmation-save" method="post">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" class="form-control" value="{{form.email}}"
+                                   name="email"
+                                   id="email"/>
+                            {{#if errors.email}}
+                                <div class="invalid-feedback d-block">{{errors.email}}</div>
+                            {{/if}}
+                        </div>
+                        <button id="primary-form-submit" type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {{/inline}}
+{{/layout_page}}

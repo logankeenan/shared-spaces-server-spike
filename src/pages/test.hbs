@@ -1,0 +1,17 @@
+{{#> layout_page}}
+    {{#*inline "page_content"}}
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <h1>Create Account</h1>
+
+
+
+                    {{#if errors.my_error}}
+                        <div class="invalid-feedback d-block">{{errors.my_error}}</div>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+    {{/inline}}
+{{/layout_page}}

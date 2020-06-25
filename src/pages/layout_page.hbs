@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Shared Spaces</title>
+    <script src="https://kit.fontawesome.com/a64d0d7cc0.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <style>
+        /*TODO this should be in a style sheet*/
+        .apply-change-submit {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<nav class="container d-flex mt-3 mb-4">
+    <a class="nav-link pl-0" href="/">Home</a>
+
+    {{#if current_user }}
+
+        <form class="ml-2" action="/session/delete" method="post">
+            <input id="logout-btn" class="btn btn-link nav-link" type="submit" value="Logout">
+        </form>
+    {{else}}
+        <a class="mr-4 font-weight-bolder ml-auto nav-link" href="/registration/create">Create Account</a>
+        <a class="mr-4 font-weight-light nav-link" href="/session/create">Login</a>
+    {{/if}}
+
+</nav>
+{{#if success_message}}
+
+    <div class="alert alert-success" role="alert">
+        <div class="container">
+            {{success_message}}
+        </div>
+    </div>
+{{/if}}
+{{> page_content}}
+<script type="text/javascript">
+    //TODO this should live in a js file
+    document.body.addEventListener('change', function (event) {
+        if (event.target.className.indexOf('apply-change') > -1) {
+            event.target.closest('form').querySelector('.apply-change-submit').click();
+        }
+    });
+</script>
+</body>
+</html>

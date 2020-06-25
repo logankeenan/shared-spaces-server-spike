@@ -1,0 +1,15 @@
+{{#> layout_page}}
+    {{#*inline "page_content"}}
+        <div class="container">
+            <h1>Account Details</h1>
+            <dl>
+                <dt>Name</dt>
+                <dd>
+                    {{current_user.first_name}} {{current_user.last_name}}
+                </dd>
+            </dl>
+            <a href="/users/{{current_user.id}}/edit">Edit</a>
+        </div>
+
+    {{/inline}}
+{{/layout_page}}

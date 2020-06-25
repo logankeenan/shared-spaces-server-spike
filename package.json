@@ -1,0 +1,27 @@
+{
+  "name": "shared-spaces",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test:app": "RUST_ENV=test cargo run",
+    "test": "npm run db:reset && cypress run",
+    "test:interactive": "cypress open",
+    "db:reset": "npm run db:closeConnections && DATABASE_URL=postgres://postgres:password@localhost/shared_spaces_test diesel database reset && psql --dbname=shared_spaces_test --file=fixtures/seed-database.sql",
+    "db:closeConnections": "psql --dbname=shared_spaces_test --file=fixtures/close-connections.sql"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/logankeenan/shared-spaces.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/logankeenan/shared-spaces/issues"
+  },
+  "homepage": "https://github.com/logankeenan/shared-spaces#readme",
+  "dependencies": {
+    "chance": "^1.1.4",
+    "cypress": "^4.3.0"
+  }
+}
