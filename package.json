@@ -21,8 +21,10 @@
   },
   "homepage": "https://github.com/logankeenan/shared-spaces-server#readme",
   "dependencies": {
-    "@logankeenan/shared-space-app": "^0.1.0",
-    "chance": "^1.1.4",
-    "cypress": "^4.3.0"
+    "@logankeenan/shared-space-app": "^0.1.0"
+  },
+  "devDependencies": {
+    "chance": "^1.1.6",
+    "cypress": "^4.9.0"
   }
 }
