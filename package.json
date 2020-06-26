@@ -1,5 +1,5 @@
 {
-  "name": "shared-spaces",
+  "name": "shared-spaces-server",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/logankeenan/shared-spaces.git"
+    "url": "git+https://github.com/logankeenan/shared-spaces-server.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/logankeenan/shared-spaces/issues"
+    "url": "https://github.com/logankeenan/shared-spaces-server/issues"
   },
-  "homepage": "https://github.com/logankeenan/shared-spaces#readme",
+  "homepage": "https://github.com/logankeenan/shared-spaces-server#readme",
   "dependencies": {
     "chance": "^1.1.4",
     "cypress": "^4.3.0"
