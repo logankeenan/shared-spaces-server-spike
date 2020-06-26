@@ -111,6 +111,7 @@ async fn main() -> std::io::Result<()> {
                 .service(fs::Files::new("/static/shared_space_app.js", "node_modules/@logankeenan/shared-space-app/shared_space_app.js"))
                 .service(fs::Files::new("/static/shared_space_app_bg.wasm", "node_modules/@logankeenan/shared-space-app/shared_space_app_bg.wasm"))
                 .service(fs::Files::new("/static", "static"))
+                .service(fs::Files::new("/node_modules", "node_modules"))
                 .service(post_user_update)
                 .wrap(Logger::default())
                 .wrap(IdentityService::new(
