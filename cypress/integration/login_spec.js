@@ -13,7 +13,7 @@ describe('login', function () {
     it('should allow an existing user to login', function () {
         logInExistingUser();
 
-        cy.url().should('match', /.*\/users\/1/);
+        cy.url().should('match', /.*\/app/);
     });
 
     it('should show an error message when the email and/or password is invalid', function () {

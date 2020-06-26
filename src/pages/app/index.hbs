@@ -1,0 +1,135 @@
+{{#> layout_page}}
+    {{#*inline "page_content"}}
+        <div class="container">
+            <p>Loading...</p>
+            <script type="text/javascript" src="https://unpkg.com/morphdom@2.6.1/dist/morphdom-umd.js"></script>
+            <script type="text/javascript" src="https://unpkg.com/localforage@1.7.4/dist/localforage.js"></script>
+            <script type="text/javascript" src="https://unpkg.com/js-md5@0.7.3/src/md5.js"></script>
+            <script type="module">
+                import init, {app, Request} from '/static/shared_space_app.js';
+
+                localforage.config({
+                    name: 'shared-space-app',
+                    version: 1.0,
+                    driver: localforage.INDEXEDDB
+                });
+
+                async function readAsDataUrl(blob) {
+                    return new Promise((resolve) => {
+                        var reader = new FileReader();
+
+                        reader.onload = function () {
+                            resolve(reader.result);
+                        }
+
+                        reader.readAsDataURL(blob);
+                    });
+                }
+
+                async function readAsBinaryString(blob) {
+                    return new Promise((resolve) => {
+                        var reader = new FileReader();
+
+                        reader.onload = function () {
+                            resolve(reader.result);
+                        }
+
+                        reader.readAsBinaryString(blob);
+                    });
+                }
+
+                async function processRequest(request) {
+
+                    let response = await app(request);
+
+                    if (response.status_code === "303") {
+                        let redirectRequest = new Request(JSON.parse(response.headers).Location, "GET");
+
+                        return processRequest(redirectRequest);
+
+                    } else {
+                        morphdom(document.documentElement, response.body, {
+                            onNodeAdded: function (node) {
+                                if (node.nodeName === 'SCRIPT') {
+                                    var script = document.createElement('script');
+
+                                    if (node.src) {
+                                        script.src = node.src;
+                                    }
+
+                                    script.innerHTML = node.innerHTML;
+                                    node.replaceWith(script)
+                                }
+                            }
+                        });
+                    }
+                }
+
+                document.addEventListener('submit', async function (event) {
+                    event.preventDefault();
+
+                    let form = event.target.closest('form');
+                    var formData = new FormData(form);
+
+                    var object = await Array.from(formData).reduce(async function (acc, formDataEntry) {
+                        var value = formDataEntry[1];
+                        var key = formDataEntry[0];
+
+                        if (value instanceof File) {
+                            let blob = new Blob([value], {type: value.type});
+                            let blobDataUrl = await readAsBinaryString(blob);
+                            let hash = md5(blobDataUrl);
+
+                            await localforage.setItem(hash, blob);
+                            acc[key] = {
+                                name: value.name,
+                                last_modified: value.lastModified,
+                                size: value.size,
+                                file_type: value.type,
+                                location: hash
+                            }
+                        } else {
+                            acc[key] = value;
+                        }
+                        return acc;
+
+                    }, {});
+
+                    var formBodyAsJSON = JSON.stringify(object);
+
+                    let request = new Request("/files", "POST");
+                    request.body = formBodyAsJSON;
+
+                    await processRequest(request);
+                })
+
+
+                async function run() {
+                    await init();
+
+                    let current_hash = window.location.hash;
+
+                    if (!current_hash) {
+                        window.location.hash = "#/files";
+
+                        let request = new Request("/files", "GET");
+
+                        await processRequest(request);
+                    } else {
+                        let request = new Request(current_hash.replace("#", ""), "GET");
+
+                        await processRequest(request);
+                    }
+                }
+
+                window.addEventListener('popstate', async function () {
+                    let request = new Request(window.location.hash.replace("#", ""), "GET");
+
+                    await processRequest(request);
+                });
+
+                run();
+            </script>
+        </div>
+    {{/inline}}
+{{/layout_page}}

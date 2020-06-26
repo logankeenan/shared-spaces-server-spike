@@ -73,13 +73,10 @@ pub async fn post_session_create(
                             .finish();
                     }
                     Some(_) => {
-                        let mut new_user_location = "/users/".to_string();
-                        new_user_location.push_str(user.id.to_string().as_str());
-
                         identity.remember(user.id.to_owned().to_string());
 
                         return HttpResponse::Found()
-                            .header(http::header::LOCATION, new_user_location)
+                            .header(http::header::LOCATION, "/app")
                             .finish();
                     }
                 }

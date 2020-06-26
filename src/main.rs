@@ -17,6 +17,7 @@ extern crate validator;
 extern crate env_logger;
 
 use actix_web::{App, HttpServer, web, middleware};
+use actix_files as fs;
 use std::env;
 use listenfd::ListenFd;
 use crate::controllers::registration_controller::{get_registration_create, post_registration_save, get_registration_confirmation_sent, get_registration_confirmation_create, post_registration_confirmation_save, get_registration_confirmation, get_registration_confirmation_please};
@@ -33,6 +34,7 @@ use handlebars::Handlebars;
 use actix_web::middleware::Logger;
 use crate::pages::handlebar_helpers::register_helpers;
 use std::borrow::BorrowMut;
+use crate::controllers::app_controller::get_app;
 
 mod schema;
 mod models;
@@ -89,6 +91,7 @@ async fn main() -> std::io::Result<()> {
                 .app_data(handlebars_ref.clone())
                 .app_data(web_database_pool.clone())
                 .service(get_root)
+                .service(get_app)
                 .service(get_registration_create)
                 .service(post_registration_save)
                 .service(get_user_details)
@@ -105,6 +108,9 @@ async fn main() -> std::io::Result<()> {
                 .service(get_registration_confirmation_please)
                 .service(delete_session)
                 .service(get_user_edit)
+                .service(fs::Files::new("/static/shared_space_app.js", "node_modules/@logankeenan/shared-space-app/shared_space_app.js"))
+                .service(fs::Files::new("/static/shared_space_app_bg.wasm", "node_modules/@logankeenan/shared-space-app/shared_space_app_bg.wasm"))
+                .service(fs::Files::new("/static", "static"))
                 .service(post_user_update)
                 .wrap(Logger::default())
                 .wrap(IdentityService::new(
