@@ -43,7 +43,7 @@ mod controllers;
 mod factories;
 mod traits;
 mod pages;
-
+mod web_socket;
 
 
 #[actix_rt::main]
