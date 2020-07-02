@@ -35,6 +35,9 @@ use actix_web::middleware::Logger;
 use crate::pages::handlebar_helpers::register_helpers;
 use std::borrow::BorrowMut;
 use crate::controllers::app_controller::get_app;
+use crate::controllers::authenticated_discovery_server_controller::authenticated_discover_server_router;
+use crate::web_sockets::authenticated_discovery_server::AuthenticatedDiscoveryServer;
+use actix::Actor;
 
 mod schema;
 mod models;
@@ -43,7 +46,7 @@ mod controllers;
 mod factories;
 mod traits;
 mod pages;
-mod web_socket;
+mod web_sockets;
 
 
 #[actix_rt::main]
@@ -82,11 +85,15 @@ async fn main() -> std::io::Result<()> {
     let handlebars_ref = web::Data::new(handlebars);
 
     env_logger::init();
+    let discovery_server = AuthenticatedDiscoveryServer::default().start();
 
     let mut server = HttpServer::new(move ||
         {
+
             let app = App::new();
             app
+                .data(discovery_server.clone())
+                .service(web::resource("/ws").to(authenticated_discover_server_router))
                 .wrap(middleware::Compress::default())
                 .app_data(handlebars_ref.clone())
                 .app_data(web_database_pool.clone())

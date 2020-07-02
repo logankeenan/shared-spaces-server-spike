@@ -5,6 +5,7 @@
             <script type="text/javascript" src="https://unpkg.com/morphdom@2.6.1/dist/morphdom-umd.js"></script>
             <script type="text/javascript" src="https://unpkg.com/localforage@1.7.4/dist/localforage.js"></script>
             <script type="text/javascript" src="https://unpkg.com/js-md5@0.7.3/src/md5.js"></script>
+            <script type="text/javascript" src="https://unpkg.com/uuid@latest/dist/umd/uuidv4.min.js"></script>
             <script type="module">
                 import init, {app, Request} from '/node_modules/@logankeenan/shared-space-app/shared_space_app.js';
 
@@ -129,6 +130,27 @@
                 });
 
                 run();
+            </script>
+            <script>
+                let protocal = window.location.protocol == 'https:' && 'wss://' || 'ws://';
+                var wsUri = protocal + window.location.host + `/ws?id=${uuidv4()}&name=${new Date().getTime()}`;
+
+                conn = new WebSocket(wsUri);
+                console.log('Connecting...');
+                conn.onopen = function () {
+                    console.log('Connected.');
+                    // conn.send("hello???");
+                };
+                conn.onmessage = function (e) {
+                    console.log('Received: ' + e.data);
+                };
+                conn.onclose = function () {
+                    console.log('Disconnected.');
+                    conn = null;
+
+                };
+
+                window.conn = conn;
             </script>
         </div>
     {{/inline}}

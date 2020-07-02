@@ -58,7 +58,6 @@ pub struct AuthenticatedDiscoveryServer {
 
 impl Default for AuthenticatedDiscoveryServer {
     fn default() -> AuthenticatedDiscoveryServer {
-        // default room
 
         AuthenticatedDiscoveryServer {
             sessions: HashMap::new(),
@@ -73,9 +72,9 @@ impl AuthenticatedDiscoveryServer {
     /// Send message to all users in the room
 
     fn send_message(&self, device_sender: &Device, message: &str) {
+
         if let Some(devices_for_user) = self.user_devices.get(&device_sender.user_id) {
             for device in devices_for_user {
-
                 if device_sender.ne(device) {
                     if let Some(recipient) = self.sessions.get(&device) {
                         recipient.do_send(Message(message.to_owned()));
@@ -101,6 +100,7 @@ impl Handler<Connect> for AuthenticatedDiscoveryServer {
         let recipient = connect.recipient;
         let device = connect.device;
 
+
         // Add new device to the session
         self.sessions.insert(device.clone(), recipient);
 
@@ -118,6 +118,7 @@ impl Handler<Connect> for AuthenticatedDiscoveryServer {
             }
         };
         self.user_devices.insert(device.user_id.clone(), user_devices_with_new_device);
+
 
         let connected_message = format!("/connected {}", json!(device).to_string());
         self.send_message(&device, connected_message.as_str());
@@ -153,7 +154,6 @@ impl Handler<ClientMessage> for AuthenticatedDiscoveryServer {
     type Result = ();
 
     fn handle(&mut self, client_message: ClientMessage, _: &mut Context<Self>) {
-
         self.send_message(&client_message.device, client_message.message.as_str());
     }
 }
