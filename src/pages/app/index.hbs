@@ -7,7 +7,46 @@
             <script type="text/javascript" src="https://unpkg.com/js-md5@0.7.3/src/md5.js"></script>
             <script type="text/javascript" src="https://unpkg.com/uuid@latest/dist/umd/uuidv4.min.js"></script>
             <script type="module">
-                import init, {app, Request} from '/node_modules/@logankeenan/shared-space-app/shared_space_app.js';
+                import init, {
+                    app,
+                    Request,
+                    websocket_on_open,
+                    websocket_on_message,
+                    websocket_on_close
+                } from '/node_modules/@logankeenan/shared-space-app/shared_space_app.js';
+
+                window.wsAdapter = {
+                    activeConnectionOpenResolve: undefined,
+                    activeConnectionOpenPromise: undefined,
+                    activeConnection: undefined,
+                    create: function (url) {
+                        if (!this.activeConnection) {
+                            this.activeConnectionOpenPromise = new Promise((resolve) => {
+                                this.activeConnectionOpenResolve = resolve;
+                            });
+                            this.activeConnection = new WebSocket(url);
+                            this.activeConnection.onopen = () => {
+                                this.activeConnectionOpenResolve();
+                                websocket_on_open();
+                            };
+                            this.activeConnection.onmessage = function (event) {
+                                console.log('onmessage:', event.data);
+                                websocket_on_message(event.data);
+                            };
+                            this.activeConnection.onclose = function () {
+
+                                websocket_on_close();
+                            };
+                        }
+                    },
+                    sendMessage: function (message) {
+                        return new Promise(async (resolve) => {
+                            await this.activeConnectionOpenPromise;
+                            this.activeConnection.send(message);
+                            resolve();
+                        });
+                    }
+                }
 
                 localforage.config({
                     name: 'shared-space-app',
@@ -71,7 +110,7 @@
                     var formData = new FormData(form);
                     let formObject = Object.fromEntries(formData.entries());
 
-                    var object =  await Object.keys(formObject).reduce(async function (acc, key) {
+                    var object = await Object.keys(formObject).reduce(async function (acc, key) {
                         var accumulator = await acc;
                         var value = formObject[key];
 
@@ -133,25 +172,25 @@
                 run();
             </script>
             <script>
-                let protocal = window.location.protocol == 'https:' && 'wss://' || 'ws://';
-                var wsUri = protocal + window.location.host + `/ws?id=${uuidv4()}&name=${new Date().getTime()}`;
+                // let protocal = window.location.protocol == 'https:' && 'wss://' || 'ws://';
+                // var wsUri = protocal + window.location.host + `/ws?id=${uuidv4()}&name=${new Date().getTime()}`;
+                //
+                // conn = new WebSocket(wsUri);
+                // console.log('Connecting...');
+                // conn.onopen = function () {
+                //     console.log('Connected.');
+                //     // conn.send("hello???");
+                // };
+                // conn.onmessage = function (e) {
+                //     console.log('Received: ' + e.data);
+                // };
+                // conn.onclose = function () {
+                //     console.log('Disconnected.');
+                //     conn = null;
+                //
+                // };
 
-                conn = new WebSocket(wsUri);
-                console.log('Connecting...');
-                conn.onopen = function () {
-                    console.log('Connected.');
-                    // conn.send("hello???");
-                };
-                conn.onmessage = function (e) {
-                    console.log('Received: ' + e.data);
-                };
-                conn.onclose = function () {
-                    console.log('Disconnected.');
-                    conn = null;
-
-                };
-
-                window.conn = conn;
+                // window.conn = conn;
             </script>
         </div>
     {{/inline}}
