@@ -44,9 +44,7 @@
                     let response = await app(request);
 
                     if (response.status_code === "303") {
-                        let redirectRequest = new Request(JSON.parse(response.headers).Location, "GET");
-
-                        return processRequest(redirectRequest);
+                        window.location.hash = JSON.parse(response.headers).Location;
 
                     } else {
                         morphdom(document.documentElement, response.body, {
@@ -71,10 +69,11 @@
 
                     let form = event.target.closest('form');
                     var formData = new FormData(form);
+                    let formObject = Object.fromEntries(formData.entries());
 
-                    var object = await Array.from(formData).reduce(async function (acc, formDataEntry) {
-                        var value = formDataEntry[1];
-                        var key = formDataEntry[0];
+                    var object =  await Object.keys(formObject).reduce(async function (acc, key) {
+                        var accumulator = await acc;
+                        var value = formObject[key];
 
                         if (value instanceof File) {
                             let blob = new Blob([value], {type: value.type});
@@ -82,7 +81,7 @@
                             let hash = md5(blobDataUrl);
 
                             await localforage.setItem(hash, blob);
-                            acc[key] = {
+                            accumulator[key] = {
                                 name: value.name,
                                 last_modified: value.lastModified,
                                 size: value.size,
@@ -90,15 +89,17 @@
                                 location: hash
                             }
                         } else {
-                            acc[key] = value;
+                            accumulator[key] = value;
                         }
-                        return acc;
 
-                    }, {});
+                        return Promise.resolve(accumulator);
+
+                    }, Promise.resolve({}));
 
                     var formBodyAsJSON = JSON.stringify(object);
 
-                    let request = new Request("/files", "POST");
+                    let url = form.action.replace(window.location.protocol + "//" + window.location.host, "");
+                    let request = new Request(url, form.method.toUpperCase());
                     request.body = formBodyAsJSON;
 
                     await processRequest(request);
