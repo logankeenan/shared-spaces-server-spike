@@ -21,7 +21,13 @@
   },
   "homepage": "https://github.com/logankeenan/shared-spaces-server#readme",
   "dependencies": {
-    "@logankeenan/shared-space-app": "^0.1.0"
+    "@logankeenan/shared-space-app": "^0.1.0",
+    "bootstrap": "^4.5.0",
+    "js-md5": "^0.7.3",
+    "localforage": "^1.7.4",
+    "morphdom": "^2.6.1",
+    "simple-peer": "^9.7.2",
+    "uuid": "^8.2.0"
   },
   "devDependencies": {
     "chance": "^1.1.6",
