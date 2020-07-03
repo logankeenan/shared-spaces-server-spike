@@ -15,6 +15,7 @@
                     websocket_on_message,
                     websocket_on_close
                 } from '/node_modules/@logankeenan/shared-space-app/shared_space_app.js';
+                import '/static/webrtc-adapter.js';
 
                 window.wsAdapter = {
                     activeConnectionOpenResolve: undefined,
@@ -40,12 +41,9 @@
                             };
                         }
                     },
-                    sendMessage: function (message) {
-                        return new Promise(async (resolve) => {
-                            await this.activeConnectionOpenPromise;
-                            this.activeConnection.send(message);
-                            resolve();
-                        });
+                    sendMessage: async function(message) {
+                        await this.activeConnectionOpenPromise;
+                        this.activeConnection.send(message);
                     }
                 }
 
