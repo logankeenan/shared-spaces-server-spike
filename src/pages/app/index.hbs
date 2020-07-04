@@ -32,11 +32,9 @@
                                 websocket_on_open();
                             };
                             this.activeConnection.onmessage = function (event) {
-                                console.log('onmessage:', event.data);
                                 websocket_on_message(event.data);
                             };
                             this.activeConnection.onclose = function () {
-
                                 websocket_on_close();
                             };
                         }
