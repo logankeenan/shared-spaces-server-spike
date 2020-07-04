@@ -8,18 +8,19 @@ function setup() {
 
     window.simplePeerAdapter = {
         peers: {},
-        createSimplePeer: async function (initiator = false, device_id, offer) {
+        createSimplePeer: async function (initiator, device_id, offer) {
+            console.log('initiator:', initiator);
             return new Promise((resolve) => {
                 let peer = new SimplePeer({
-                    initiator
+                    initiator: initiator === "true"
                 });
                 var connectionPromiseResolve;
                 var connectionPromise = new Promise((resolve) => {
                     connectionPromiseResolve = resolve;
                 });
 
+                console.log('offer:', offer);
                 if (offer !== "") {
-                    console.log('offer:', offer);
                     let offerAndIce = JSON.parse(offer);
                     offerAndIce.forEach(function (data) {
                         peer.signal(data)
