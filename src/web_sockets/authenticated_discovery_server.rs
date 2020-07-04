@@ -17,6 +17,13 @@ pub struct Device {
     pub id: Uuid,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AppRequest {
+    pub path: String,
+    pub method: String,
+    pub body: String,
+}
+
 /// New chat session is created
 #[derive(Message)]
 #[rtype(result = "()")]
@@ -43,7 +50,6 @@ pub struct ClientMessage {
 }
 
 
-
 /// `ChatServer` manages chat rooms and responsible for coordinating chat
 /// session. implementation is super primitive
 pub struct AuthenticatedDiscoveryServer {
@@ -58,7 +64,6 @@ pub struct AuthenticatedDiscoveryServer {
 
 impl Default for AuthenticatedDiscoveryServer {
     fn default() -> AuthenticatedDiscoveryServer {
-
         AuthenticatedDiscoveryServer {
             sessions: HashMap::new(),
             user_devices: HashMap::new(),
@@ -72,7 +77,6 @@ impl AuthenticatedDiscoveryServer {
     /// Send message to all users in the room
 
     fn send_message(&self, device_sender: &Device, message: &str) {
-
         if let Some(devices_for_user) = self.user_devices.get(&device_sender.user_id) {
             for device in devices_for_user {
                 if device_sender.ne(device) {
@@ -120,8 +124,14 @@ impl Handler<Connect> for AuthenticatedDiscoveryServer {
         self.user_devices.insert(device.user_id.clone(), user_devices_with_new_device);
 
 
-        let connected_message = format!("/connected {}", json!(device).to_string());
-        self.send_message(&device, connected_message.as_str());
+        let app_request = AppRequest {
+            path: "/webrtc-connection/create-offer".to_string(),
+            method: "POST".to_string(),
+            body: json!(device).to_string()
+        };
+
+        let app_request_as_json = json!(app_request);
+        self.send_message(&device, app_request_as_json.to_string().as_str());
 
         ()
     }

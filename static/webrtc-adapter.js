@@ -5,50 +5,70 @@ import {
 } from '/node_modules/@logankeenan/shared-space-app/shared_space_app.js';
 
 function setup() {
-    window.simplePeerAdaper = {
+    window.simplePeerAdapter = {
         peers: {},
-        create: function (initiator = false, device_id) {
-            let peer = new SimplePeer({
-                initiator: location.hash === '#1',
-                trickle: false
-            });
-            var connectionPromiseResolve;
-            var connectionPromise = new Promise((resolve) => {
-                connectionPromiseResolve = resolve;
-            });
-            this.peers[device_id] = {
-                connection: peer,
-                connectionPromise,
-                connectionPromiseResolve
-            };
-            peer.on('error', (error) => {
-                console.log('error:', error);
-            });
+        createSimplePeer: async function (initiator = false, device_id, offer) {
+            console.log('initiator:', initiator);
+            console.log('device_id:', device_id);
+            console.log('offer:', offer);
 
-            peer.on('signal', data => {
-                console.log('SIGNAL', JSON.stringify(data))
-                webrtc_on_signal(JSON.stringify({
-                    from: device_id,
-                    data
-                }));
-            })
+            return new Promise((resolve) => {
+                let peer = new SimplePeer({
+                    initiator,
+                    trickle: false
+                });
+                var connectionPromiseResolve;
+                var connectionPromise = new Promise((resolve) => {
+                    connectionPromiseResolve = resolve;
+                });
 
-            peer.on('connect', () => {
-                connectionPromiseResolve();
+                if (offer !== "") {
+                    peer.signal(JSON.parse(offer))
+                }
 
-                webrtc_on_connect(JSON.stringify({
-                    from: device_id
-                }));
-            });
+                this.peers[device_id] = {
+                    connection: peer,
+                    connectionPromise,
+                    connectionPromiseResolve
+                };
 
-            peer.on('data', data => {
-                webrtc_on_message(JSON.stringify({
-                    from: device_id,
-                    data
-                }));
+                peer.on('error', (error) => {
+                    console.log('error:', error);
+                });
+
+                peer.on('signal', data => {
+                    console.log('webrtc signal');
+                    console.log('data:', data);
+                    resolve(JSON.stringify(data));
+                })
+
+                peer.on('connect', () => {
+                    connectionPromiseResolve();
+                    console.log('webrtc connected!!!');
+
+                    webrtc_on_connect(JSON.stringify({
+                        from: device_id
+                    }));
+                });
+
+                peer.on('data', data => {
+                    console.log('peer on data');
+                    console.log('data:', data);
+                    webrtc_on_message(JSON.stringify({
+                        from: device_id,
+                        data
+                    }));
+                });
             });
         },
-        sendMessage: async (message, device_id) => {
+        signalToSimplePeer: (data, device_id) => {
+            let connection = this.peers[device_id];
+
+            console.log('signalToSimplePeer');
+            console.log('data:', data);
+            connection.signal(JSON.parse(data));
+        },
+        sendSimplePeerMessage: async (message, device_id) => {
             let connection = this.peers[device_id];
             await connection.connectionPromise;
 
