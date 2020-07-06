@@ -141,7 +141,8 @@ impl Handler<Disconnect> for AuthenticatedDiscoveryServer {
     type Result = ();
 
     fn handle(&mut self, msg: Disconnect, _: &mut Context<Self>) {
-        let mut rooms: Vec<String> = Vec::new();
+
+        println!("disconnect: {}", msg.device.name.to_string());
 
         // remove device from session
         self.sessions.remove(&msg.device);
@@ -151,11 +152,15 @@ impl Handler<Disconnect> for AuthenticatedDiscoveryServer {
             let mut user_devices_with_device_removed = user_devices.clone();
             user_devices_with_device_removed.remove(&msg.device);
 
+            println!("disconnect: {}", msg.device.name.to_string());
             self.user_devices.insert(msg.device.user_id, user_devices_with_device_removed);
         }
 
-        ()
         // should I notify that that the device disconnected?
+        // A disconnect message should be sent because the webrtc disconnect doesn't happen very quickly
+
+        ()
+
     }
 }
 

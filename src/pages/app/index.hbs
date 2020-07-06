@@ -35,6 +35,8 @@
                                 websocket_on_message(event.data);
                             };
                             this.activeConnection.onclose = function () {
+                                console.log('web socket closed');
+                                // try again ??
                                 websocket_on_close();
                             };
                         }
