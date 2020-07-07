@@ -10,7 +10,7 @@
             <script type="module">
                 import init, {
                     app,
-                    Request,
+                    AppRequest,
                     websocket_on_open,
                     websocket_on_message,
                     websocket_on_close
@@ -137,7 +137,7 @@
                     var formBodyAsJSON = JSON.stringify(object);
 
                     let url = form.action.replace(window.location.protocol + "//" + window.location.host, "");
-                    let request = new Request(url, form.method.toUpperCase());
+                    let request = new AppRequest(url, form.method.toUpperCase());
                     request.body = formBodyAsJSON;
 
                     await processRequest(request);
@@ -152,18 +152,18 @@
                     if (!current_hash) {
                         window.location.hash = "#/files";
 
-                        let request = new Request("/files", "GET");
+                        let request = new AppRequest("/files", "GET");
 
                         await processRequest(request);
                     } else {
-                        let request = new Request(current_hash.replace("#", ""), "GET");
+                        let request = new AppRequest(current_hash.replace("#", ""), "GET");
 
                         await processRequest(request);
                     }
                 }
 
                 window.addEventListener('popstate', async function () {
-                    let request = new Request(window.location.hash.replace("#", ""), "GET");
+                    let request = new AppRequest(window.location.hash.replace("#", ""), "GET");
 
                     await processRequest(request);
                 });
