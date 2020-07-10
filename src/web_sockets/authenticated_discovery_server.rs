@@ -12,7 +12,6 @@ pub struct Message(pub String);
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Serialize, Deserialize)]
 pub struct Device {
-    pub user_id: i64,
     pub name: String,
     pub id: Uuid,
 }
@@ -24,12 +23,19 @@ pub struct AppRequest {
     pub body: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AppEvent {
+    pub event_type: String,
+    pub body: String,
+}
+
 /// New chat session is created
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct Connect {
     pub recipient: Recipient<Message>,
     pub device: Device,
+    pub user_id: i64,
 }
 
 /// Session is disconnected
@@ -37,6 +43,7 @@ pub struct Connect {
 #[rtype(result = "()")]
 pub struct Disconnect {
     pub device: Device,
+    pub user_id: i64,
 }
 
 /// Send message to specific room
@@ -47,6 +54,7 @@ pub struct ClientMessage {
     pub device: Device,
     /// Peer message
     pub message: String,
+    pub user_id: i64,
 }
 
 
@@ -76,8 +84,8 @@ impl Default for AuthenticatedDiscoveryServer {
 impl AuthenticatedDiscoveryServer {
     /// Send message to all users in the room
 
-    fn send_message(&self, device_sender: &Device, message: &str) {
-        if let Some(devices_for_user) = self.user_devices.get(&device_sender.user_id) {
+    fn send_message(&self, device_sender: &Device, message: &str, user_id: &i64) {
+        if let Some(devices_for_user) = self.user_devices.get(&user_id) {
             for device in devices_for_user {
                 if device_sender.ne(device) {
                     if let Some(recipient) = self.sessions.get(&device) {
@@ -103,13 +111,14 @@ impl Handler<Connect> for AuthenticatedDiscoveryServer {
         // add that
         let recipient = connect.recipient;
         let device = connect.device;
+        let user_id = connect.user_id;
 
 
         // Add new device to the session
         self.sessions.insert(device.clone(), recipient);
 
         // Add new device to the set of devices for a user
-        let user_devices_with_new_device = match self.user_devices.get(&device.clone().user_id) {
+        let user_devices_with_new_device = match self.user_devices.get(&user_id) {
             None => {
                 let mut user_devices: HashSet<Device> = HashSet::new();
                 user_devices.insert(device.clone());
@@ -121,8 +130,20 @@ impl Handler<Connect> for AuthenticatedDiscoveryServer {
                 set
             }
         };
-        self.user_devices.insert(device.user_id.clone(), user_devices_with_new_device);
+        self.user_devices.insert(user_id.clone(), user_devices_with_new_device);
 
+
+        // let app_event = AppEvent {
+        //     event_type: "WEB_SOCKET_DEVICE_CONNECTED".to_string(),
+        //     body: json!(device).to_string(),
+        // };
+        //
+        // let app_event_as_json = json!(app_event);
+        // self.send_message(
+        //     &device,
+        //     app_event_as_json.to_string().as_str(),
+        //     &user_id,
+        // );
 
         let app_request = AppRequest {
             path: "/webrtc-connection/create-offer".to_string(),
@@ -131,7 +152,7 @@ impl Handler<Connect> for AuthenticatedDiscoveryServer {
         };
 
         let app_request_as_json = json!(app_request);
-        self.send_message(&device, app_request_as_json.to_string().as_str());
+        self.send_message(&device, app_request_as_json.to_string().as_str(), &user_id);
 
         ()
     }
@@ -141,26 +162,24 @@ impl Handler<Disconnect> for AuthenticatedDiscoveryServer {
     type Result = ();
 
     fn handle(&mut self, msg: Disconnect, _: &mut Context<Self>) {
-
         println!("disconnect: {}", msg.device.name.to_string());
 
         // remove device from session
         self.sessions.remove(&msg.device);
 
         // remove device from user devices
-        if let Some(user_devices) = self.user_devices.get(&msg.device.user_id) {
+        if let Some(user_devices) = self.user_devices.get(&msg.user_id) {
             let mut user_devices_with_device_removed = user_devices.clone();
             user_devices_with_device_removed.remove(&msg.device);
 
             println!("disconnect: {}", msg.device.name.to_string());
-            self.user_devices.insert(msg.device.user_id, user_devices_with_device_removed);
+            self.user_devices.insert(msg.user_id, user_devices_with_device_removed);
         }
 
         // should I notify that that the device disconnected?
         // A disconnect message should be sent because the webrtc disconnect doesn't happen very quickly
 
         ()
-
     }
 }
 
@@ -169,6 +188,10 @@ impl Handler<ClientMessage> for AuthenticatedDiscoveryServer {
     type Result = ();
 
     fn handle(&mut self, client_message: ClientMessage, _: &mut Context<Self>) {
-        self.send_message(&client_message.device, client_message.message.as_str());
+        self.send_message(
+            &client_message.device,
+            client_message.message.as_str(),
+            &client_message.user_id
+        );
     }
 }

@@ -16,6 +16,8 @@ struct WsChatSession {
     /// joined room
     /// Chat server
     addr: Addr<AuthenticatedDiscoveryServer>,
+
+    user_id: i64
 }
 
 impl Actor for WsChatSession {
@@ -37,6 +39,7 @@ impl Actor for WsChatSession {
             .send(Connect {
                 recipient: addr.recipient(),
                 device: self.device.clone(),
+                user_id: self.user_id
             })
             .into_actor(self)
             .then(|res, act, ctx| {
@@ -54,7 +57,7 @@ impl Actor for WsChatSession {
 
     fn stopping(&mut self, _: &mut Self::Context) -> Running {
         // notify chat server
-        self.addr.do_send(Disconnect { device: self.device.clone() });
+        self.addr.do_send(Disconnect { device: self.device.clone(), user_id: self.user_id });
         Running::Stop
     }
 }
@@ -83,7 +86,6 @@ pub async fn authenticated_discover_server_router(
     let user_id: i64 = identity.identity().unwrap().parse().unwrap();
     let address = authenticated_discover_server.get_ref().clone();
     let device = Device {
-        user_id,
         name: query.name.clone(),
         id: query.id.clone(),
     };
@@ -93,6 +95,7 @@ pub async fn authenticated_discover_server_router(
             device,
             hb: Instant::now(),
             addr: address,
+            user_id
         },
         &request,
         stream,
@@ -136,6 +139,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                 self.addr.do_send(ClientMessage {
                     device,
                     message: text,
+                    user_id: self.user_id
                 })
             }
             ws::Message::Binary(bin) => {
@@ -161,7 +165,7 @@ impl WsChatSession {
                 // notify chat server
 
 
-                act.addr.do_send(Disconnect { device: act.device.clone() });
+                act.addr.do_send(Disconnect { device: act.device.clone(), user_id: act.user_id });
 
                 // stop actor
                 ctx.stop();
