@@ -8,6 +8,7 @@ function setup() {
 
     window.simplePeerAdapter = {
         peers: {},
+        activeRequestsResolver: {},
         createSimplePeer: async function (initiator, device_id, offer) {
             console.log('initiator:', initiator);
             return new Promise((resolve) => {
@@ -51,16 +52,15 @@ function setup() {
                     console.log('webrtc connected!!!');
                     connectionPromiseResolve();
 
-                    webrtc_on_connect(JSON.stringify({
-                        from: device_id
-                    }));
+                    webrtc_on_connect(device_id);
                 });
 
                 peer.on('data', data => {
-                    webrtc_on_message(JSON.stringify({
-                        from: device_id,
-                        data
-                    }));
+                    let parsedData = JSON.parse(data);
+                    const resolver = window.activeRequestsResolver[parsedData];
+                    resolver(parsedData.message);
+
+                    delete window.activeRequestsResolver[parsedData];
                 });
 
                 setTimeout(function () {
@@ -74,12 +74,22 @@ function setup() {
             JSON.parse(datas).forEach((data) => {
                 peer.connection.signal(data);
             });
-
         },
         sendSimplePeerMessage: async (message, device_id) => {
             let peer = window.simplePeerAdapter.peers[device_id];
+
             await peer.connectionPromise;
-            peer.connection.send(message);
+            let request_id = uuidv4();
+
+            return new Promise((resolve) => {
+
+                peer.activeRequestsResolver[request_id] = resolve;
+
+                peer.connection.send(JSON.stringify({
+                    request_id,
+                    message
+                }));
+            });
         }
     }
 }

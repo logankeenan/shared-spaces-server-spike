@@ -155,20 +155,33 @@ impl Handler<Disconnect> for AuthenticatedDiscoveryServer {
     fn handle(&mut self, msg: Disconnect, _: &mut Context<Self>) {
         println!("disconnect: {}", msg.device.name.to_string());
 
+        let device = msg.device;
+        let user_id = msg.user_id;
+
         // remove device from session
-        self.sessions.remove(&msg.device);
+        self.sessions.remove(&device);
 
         // remove device from user devices
         if let Some(user_devices) = self.user_devices.get(&msg.user_id) {
             let mut user_devices_with_device_removed = user_devices.clone();
-            user_devices_with_device_removed.remove(&msg.device);
+            user_devices_with_device_removed.remove(&device);
 
-            println!("disconnect: {}", msg.device.name.to_string());
+            println!("disconnect: {}", device.name.to_string());
             self.user_devices.insert(msg.user_id, user_devices_with_device_removed);
         }
 
-        // should I notify that that the device disconnected?
-        // A disconnect message should be sent because the webrtc disconnect doesn't happen very quickly
+
+        let app_event = AppEvent {
+            event_type: "WEB_SOCKET_DEVICE_DISCONNECTED".to_string(),
+            body: json!(device).to_string(),
+        };
+
+        let app_event_as_json = json!(app_event);
+        self.send_message(
+            &device,
+            app_event_as_json.to_string().as_str(),
+            &user_id,
+        );
 
         ()
     }
