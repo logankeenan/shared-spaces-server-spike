@@ -32,6 +32,8 @@
                                 websocket_on_open();
                             };
                             this.activeConnection.onmessage = function (event) {
+                                console.log('web socket message');
+                                console.log('event.data:', event.data);
                                 websocket_on_message(event.data);
                             };
                             this.activeConnection.onclose = function () {

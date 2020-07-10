@@ -40,7 +40,7 @@ function setup() {
                 });
 
                 peer.on('close', () => {
-                    console.log('closed');
+                    console.log('webrtc connection closed');
                     window.simplePeerAdapter[device_id] = undefined
                 })
 
