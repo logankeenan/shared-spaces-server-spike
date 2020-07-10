@@ -133,26 +133,17 @@ impl Handler<Connect> for AuthenticatedDiscoveryServer {
         self.user_devices.insert(user_id.clone(), user_devices_with_new_device);
 
 
-        // let app_event = AppEvent {
-        //     event_type: "WEB_SOCKET_DEVICE_CONNECTED".to_string(),
-        //     body: json!(device).to_string(),
-        // };
-        //
-        // let app_event_as_json = json!(app_event);
-        // self.send_message(
-        //     &device,
-        //     app_event_as_json.to_string().as_str(),
-        //     &user_id,
-        // );
-
-        let app_request = AppRequest {
-            path: "/webrtc-connection/create-offer".to_string(),
-            method: "POST".to_string(),
-            body: json!(device).to_string()
+        let app_event = AppEvent {
+            event_type: "WEB_SOCKET_DEVICE_CONNECTED".to_string(),
+            body: json!(device).to_string(),
         };
 
-        let app_request_as_json = json!(app_request);
-        self.send_message(&device, app_request_as_json.to_string().as_str(), &user_id);
+        let app_event_as_json = json!(app_event);
+        self.send_message(
+            &device,
+            app_event_as_json.to_string().as_str(),
+            &user_id,
+        );
 
         ()
     }
