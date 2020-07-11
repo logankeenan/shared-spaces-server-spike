@@ -82,26 +82,38 @@
 
                 async function processRequest(request) {
 
+                    let morphdomOptions = {
+                        onNodeAdded: function (node) {
+                            if (node.nodeName === 'SCRIPT') {
+                                var script = document.createElement('script');
+                                //copy over the attributes
+                                [...node.attributes].forEach( attr => { script.setAttribute(attr.nodeName ,attr.nodeValue) })
+
+                                script.innerHTML = node.innerHTML;
+                                node.replaceWith(script)
+                            }
+                        },
+                        onBeforeElUpdated: function (fromEl, toEl) {
+                            if (fromEl.nodeName === "SCRIPT" && toEl.nodeName === "SCRIPT") {
+                                var script = document.createElement('script');
+                                //copy over the attributes
+                                [...toEl.attributes].forEach( attr => { script.setAttribute(attr.nodeName ,attr.nodeValue) })
+
+                                script.innerHTML = toEl.innerHTML;
+                                fromEl.replaceWith(script)
+                                return false;
+                            }
+                            return true;
+                        }
+                    };
+
                     let response = await app(request);
 
                     if (response.status_code === "303") {
-                        window.location.hash = JSON.parse(response.headers).Location;
+                        window.location.hash = "#" + JSON.parse(response.headers).Location;
 
                     } else {
-                        morphdom(document.documentElement, response.body, {
-                            onNodeAdded: function (node) {
-                                if (node.nodeName === 'SCRIPT') {
-                                    var script = document.createElement('script');
-
-                                    if (node.src) {
-                                        script.src = node.src;
-                                    }
-
-                                    script.innerHTML = node.innerHTML;
-                                    node.replaceWith(script)
-                                }
-                            }
-                        });
+                        morphdom(document.documentElement, response.body, morphdomOptions);
                     }
                 }
 
@@ -167,10 +179,17 @@
                     }
                 }
 
-                window.addEventListener('popstate', async function () {
+                async function process_current_page() {
+                    console.log('process_current_page');
                     let request = new AppRequest(window.location.hash.replace("#", ""), "GET");
 
                     await processRequest(request);
+                }
+
+                window.process_current_page = process_current_page;
+
+                window.addEventListener('popstate', async function () {
+                    await process_current_page();
                 });
 
                 run();

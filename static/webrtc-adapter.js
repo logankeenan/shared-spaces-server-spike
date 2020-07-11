@@ -1,7 +1,9 @@
 import {
     webrtc_on_message,
     webrtc_on_connect,
-    webrtc_on_signal
+    webrtc_on_signal,
+    app,
+    AppRequest
 } from '/node_modules/@logankeenan/shared-space-app/shared_space_app.js';
 
 function setup() {
@@ -55,12 +57,35 @@ function setup() {
                     webrtc_on_connect(device_id);
                 });
 
-                peer.on('data', data => {
-                    let parsedData = JSON.parse(data);
-                    const resolver = window.activeRequestsResolver[parsedData];
-                    resolver(parsedData.message);
+                peer.on('data', async data => {
 
-                    delete window.activeRequestsResolver[parsedData];
+                    let parsedData = JSON.parse(data);
+
+                    if (parsedData.type === "request") {
+                        var request = JSON.parse(parsedData.message);
+
+                        let app_request = new AppRequest(request.path, request.method);
+                        app_request.body = request.body;
+
+                        let response = await app(app_request);
+                        // TODAY - this needs to be a json message so I can send it
+                        console.log('response:', response);
+
+                        let chunk = JSON.stringify({
+                            type: 'response',
+                            request_id: parsedData.request_id,
+                            message: response.as_json_string()
+                        });
+                        peer.send(chunk);
+
+                    } else if (parsedData.type === "response") {
+                        console.log('response');
+                        const resolver = window.simplePeerAdapter.activeRequestsResolver[parsedData.request_id];
+                        console.log('parsedData:', parsedData);
+                        resolver(parsedData.message);
+
+                        delete window.simplePeerAdapter.activeRequestsResolver[parsedData.request_id];
+                    }
                 });
 
                 setTimeout(function () {
@@ -75,21 +100,22 @@ function setup() {
                 peer.connection.signal(data);
             });
         },
-        sendSimplePeerMessage: async (message, device_id) => {
-            let peer = window.simplePeerAdapter.peers[device_id];
+        sendSimplePeerMessage: function (message, device_id) {
+            let promise = new Promise((resolve) => {
+                let peer = window.simplePeerAdapter.peers[device_id];
+                let request_id = uuidv4();
 
-            await peer.connectionPromise;
-            let request_id = uuidv4();
-
-            return new Promise((resolve) => {
-
-                peer.activeRequestsResolver[request_id] = resolve;
-
-                peer.connection.send(JSON.stringify({
+                window.simplePeerAdapter.activeRequestsResolver[request_id] = resolve;
+                let chunk = JSON.stringify({
+                    type: 'request',
                     request_id,
+                    device_id,
                     message
-                }));
+                });
+                peer.connection.send(chunk);
             });
+
+            return promise;
         }
     }
 }
