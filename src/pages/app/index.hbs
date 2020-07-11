@@ -13,7 +13,8 @@
                     AppRequest,
                     websocket_on_open,
                     websocket_on_message,
-                    websocket_on_close
+                    websocket_on_close,
+                    app_start
                 } from '/node_modules/@logankeenan/shared-space-app/shared_space_app.js';
                 import '/static/webrtc-adapter.js';
 
@@ -148,6 +149,8 @@
 
                 async function run() {
                     await init();
+
+                    await app_start();
 
                     let current_hash = window.location.hash;
 
