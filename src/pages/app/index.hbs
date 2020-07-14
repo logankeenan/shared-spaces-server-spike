@@ -33,12 +33,9 @@
                                 websocket_on_open();
                             };
                             this.activeConnection.onmessage = function (event) {
-                                console.log('web socket message');
-                                console.log('event.data:', event.data);
                                 websocket_on_message(event.data);
                             };
                             this.activeConnection.onclose = function () {
-                                console.log('web socket closed');
                                 // try again ??
                                 websocket_on_close();
                             };
@@ -180,12 +177,12 @@
                 }
 
                 async function process_current_page() {
-                    console.log('process_current_page');
                     let request = new AppRequest(window.location.hash.replace("#", ""), "GET");
 
                     await processRequest(request);
                 }
 
+                // TODO this could be better.
                 window.process_current_page = process_current_page;
 
                 window.addEventListener('popstate', async function () {
@@ -193,27 +190,6 @@
                 });
 
                 run();
-            </script>
-            <script>
-                // let protocal = window.location.protocol == 'https:' && 'wss://' || 'ws://';
-                // var wsUri = protocal + window.location.host + `/ws?id=${uuidv4()}&name=${new Date().getTime()}`;
-                //
-                // conn = new WebSocket(wsUri);
-                // console.log('Connecting...');
-                // conn.onopen = function () {
-                //     console.log('Connected.');
-                //     // conn.send("hello???");
-                // };
-                // conn.onmessage = function (e) {
-                //     console.log('Received: ' + e.data);
-                // };
-                // conn.onclose = function () {
-                //     console.log('Disconnected.');
-                //     conn = null;
-                //
-                // };
-
-                // window.conn = conn;
             </script>
         </div>
     {{/inline}}

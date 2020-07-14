@@ -12,7 +12,6 @@ function setup() {
         peers: {},
         activeRequestsResolver: {},
         createSimplePeer: async function (initiator, device_id, offer) {
-            console.log('initiator:', initiator);
             return new Promise((resolve) => {
                 let peer = new SimplePeer({
                     initiator: initiator === "true"
@@ -22,7 +21,6 @@ function setup() {
                     connectionPromiseResolve = resolve;
                 });
 
-                console.log('offer:', offer);
                 if (offer !== "") {
                     let offerAndIce = JSON.parse(offer);
                     offerAndIce.forEach(function (data) {
@@ -38,11 +36,9 @@ function setup() {
                 };
 
                 peer.on('error', (error) => {
-                    console.log('error:', error);
                 });
 
                 peer.on('close', () => {
-                    console.log('webrtc connection closed');
                     window.simplePeerAdapter[device_id] = undefined
                 })
 
@@ -51,7 +47,6 @@ function setup() {
                 })
 
                 peer.on('connect', () => {
-                    console.log('webrtc connected!!!');
                     connectionPromiseResolve();
 
                     webrtc_on_connect(device_id);
@@ -69,7 +64,6 @@ function setup() {
 
                         let response = await app(app_request);
                         // TODAY - this needs to be a json message so I can send it
-                        console.log('response:', response);
 
                         let chunk = JSON.stringify({
                             type: 'response',
@@ -79,9 +73,7 @@ function setup() {
                         peer.send(chunk);
 
                     } else if (parsedData.type === "response") {
-                        console.log('response');
                         const resolver = window.simplePeerAdapter.activeRequestsResolver[parsedData.request_id];
-                        console.log('parsedData:', parsedData);
                         resolver(parsedData.message);
 
                         delete window.simplePeerAdapter.activeRequestsResolver[parsedData.request_id];
