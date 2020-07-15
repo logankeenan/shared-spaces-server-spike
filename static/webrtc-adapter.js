@@ -1,13 +1,18 @@
 import {app, AppRequest, webrtc_on_connect} from '/node_modules/@logankeenan/shared-space-app/shared_space_app.js';
 
+function createAppRequest(dataAsJson) {
+    var webrtcRequest = JSON.parse(dataAsJson.message);
+
+    let appRequest = new AppRequest(webrtcRequest.path, webrtcRequest.method);
+    appRequest.body = webrtcRequest.body;
+    return appRequest;
+}
+
 async function processIncomingData(data, peer) {
     let dataAsJson = JSON.parse(data);
 
     if (dataAsJson.type === "request") {
-        var webrtcRequest = JSON.parse(dataAsJson.message);
-
-        let appRequest = new AppRequest(webrtcRequest.path, webrtcRequest.method);
-        appRequest.body = webrtcRequest.body;
+        let appRequest = createAppRequest(dataAsJson);
 
         let appResponse = await app(appRequest);
 
@@ -18,10 +23,11 @@ async function processIncomingData(data, peer) {
         }));
 
     } else if (dataAsJson.type === "response") {
-        const resolver = window.simplePeerAdapter.activeRequestsResolver[dataAsJson.request_id];
-        resolver(dataAsJson.message);
+        const resolvedForOriginalRequest = window.simplePeerAdapter.activeRequestsResolvers[dataAsJson.request_id];
 
-        delete window.simplePeerAdapter.activeRequestsResolver[dataAsJson.request_id];
+        resolvedForOriginalRequest(dataAsJson.message);
+
+        delete window.simplePeerAdapter.activeRequestsResolvers[dataAsJson.request_id];
     }
 }
 
@@ -29,7 +35,7 @@ function setup() {
 
     window.simplePeerAdapter = {
         peers: {},
-        activeRequestsResolver: {},
+        activeRequestsResolvers: {},
         createSimplePeer: async function (initiator, device_id, offer) {
             return new Promise((resolveCreatePeerConnection) => {
                 let peer = new SimplePeer({
@@ -42,10 +48,10 @@ function setup() {
                         peer.signal(data)
                     });
                 }
-                var signalData = [];
+
                 window.simplePeerAdapter.peers[device_id] = {
                     connection: peer,
-                    signalData,
+                    signalData: [],
                 };
 
                 peer.on('error', (error) => {
@@ -56,7 +62,7 @@ function setup() {
                 })
 
                 peer.on('signal', data => {
-                    signalData.push(data)
+                    window.simplePeerAdapter.peers[device_id].signalData.push(data);
                 })
 
                 peer.on('connect', () => {
@@ -68,6 +74,8 @@ function setup() {
                 });
 
                 setTimeout(function () {
+                    const signalData = window.simplePeerAdapter.peers[device_id].signalData;
+
                     resolveCreatePeerConnection(JSON.stringify(signalData));
                 }, 3000);
             });
@@ -84,7 +92,7 @@ function setup() {
                 let peer = window.simplePeerAdapter.peers[device_id];
                 let request_id = uuidv4();
 
-                window.simplePeerAdapter.activeRequestsResolver[request_id] = resolve;
+                window.simplePeerAdapter.activeRequestsResolvers[request_id] = resolve;
 
                 let chunk = JSON.stringify({
                     type: 'request',
