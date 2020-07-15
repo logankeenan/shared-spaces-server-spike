@@ -146,6 +146,10 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                 print!("binary");
                 ctx.binary(bin)
             }
+            ws::Message::Close(reason) => {
+                ctx.close(reason);
+                ctx.stop();
+            }
             _ => (),
         }
     }

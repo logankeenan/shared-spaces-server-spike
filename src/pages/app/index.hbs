@@ -17,7 +17,6 @@
                     app_start
                 } from '/node_modules/@logankeenan/shared-space-app/shared_space_app.js';
                 import '/static/webrtc-adapter.js';
-
                 window.wsAdapter = {
                     activeConnectionOpenResolve: undefined,
                     activeConnectionOpenPromise: undefined,
@@ -27,7 +26,13 @@
                             this.activeConnectionOpenPromise = new Promise((resolve) => {
                                 this.activeConnectionOpenResolve = resolve;
                             });
-                            this.activeConnection = new WebSocket(url);
+                            try {
+                                this.activeConnection = new WebSocket(url);
+                            } catch (error) {
+                                console.log('catch of web socket create');
+                                console.log('error:', error);
+                            }
+
                             this.activeConnection.onopen = () => {
                                 this.activeConnectionOpenResolve();
                                 websocket_on_open();
@@ -36,8 +41,10 @@
                                 websocket_on_message(event.data);
                             };
                             this.activeConnection.onclose = function () {
-                                // try again ??
-                                websocket_on_close();
+                                console.log('web socket on close');
+                            };
+                            this.activeConnection.onerror = function () {
+                                console.log('web socket on error');
                             };
                         }
                     },
@@ -46,6 +53,15 @@
                         this.activeConnection.send(message);
                     }
                 }
+
+                window.addEventListener('beforeunload', function (e) {
+                    // Cancel the event
+
+                    let activeConnection = window.wsAdapter.activeConnection;
+                    if (activeConnection) {
+                        activeConnection.close();
+                    }
+                });
 
                 localforage.config({
                     name: 'shared-space-app',
