@@ -21,12 +21,16 @@
                     activeConnectionOpenResolve: undefined,
                     activeConnectionOpenPromise: undefined,
                     activeConnection: undefined,
-                    create: function (url) {
+                    create: function (path) {
                         if (!this.activeConnection) {
                             this.activeConnectionOpenPromise = new Promise((resolve) => {
                                 this.activeConnectionOpenResolve = resolve;
                             });
                             try {
+                                let protocal = window.location.protocol == 'https:' && 'wss://' || 'ws://';
+
+                                var url = `${protocal}${window.location.host}${path}`;
+
                                 this.activeConnection = new WebSocket(url);
                             } catch (error) {
                                 console.log('catch of web socket create');
