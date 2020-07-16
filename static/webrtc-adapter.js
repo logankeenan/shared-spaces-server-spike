@@ -1,4 +1,4 @@
-import {app, AppRequest, webrtc_on_connect} from '/node_modules/@logankeenan/shared-space-app/shared_space_app.js';
+import {app, AppRequest, webrtc_on_connect} from '/node_modules/@logankeenan/shared-spaces-app/shared_space_app.js';
 
 function createAppRequest(dataAsJson) {
     var webrtcRequest = JSON.parse(dataAsJson.message);
