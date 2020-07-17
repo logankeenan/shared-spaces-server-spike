@@ -111,6 +111,12 @@
                             }
                         },
                         onBeforeElUpdated: function (fromEl, toEl) {
+                            // do modify input fields.
+                            if (toEl.tagName === 'INPUT') {
+                                return false;
+
+                            }
+
                             if (fromEl.nodeName === "SCRIPT" && toEl.nodeName === "SCRIPT") {
                                 var script = document.createElement('script');
                                 //copy over the attributes
@@ -128,9 +134,16 @@
 
                     if (response.status_code === "303") {
                         window.location.hash = "#" + JSON.parse(response.headers).Location;
+                        window.process_current_page();
 
                     } else {
-                        morphdom(document.documentElement, response.body, morphdomOptions);
+                        try {
+                            morphdom(document.documentElement, response.body, morphdomOptions);
+                        } catch(error)  {
+                            console.log('error:', error);
+
+                        }
+
                     }
                 }
 
@@ -171,8 +184,8 @@
                     let url = form.action.replace(window.location.protocol + "//" + window.location.host, "");
                     let request = new AppRequest(url, form.method.toUpperCase());
                     request.body = formBodyAsJSON;
-
                     await processRequest(request);
+                    form.reset();
                 })
 
 
