@@ -121,9 +121,14 @@
                     let response = await app(request);
 
                     if (response.status_code === "303") {
-                        window.location.hash = "#" + JSON.parse(response.headers).Location;
-                        window.process_current_page();
+                        let location = JSON.parse(response.headers).Location;
+                        window.location.hash = "#" + location;
 
+                        window.load_page(location);
+
+                    } else if (response.status_code === "201") {
+                        console.log('here');
+                        //do nothing
                     } else {
                         try {
                             morphdom(document.documentElement, response.body, morphdomOptions);
@@ -201,17 +206,17 @@
                     }
                 }
 
-                async function process_current_page() {
-                    let request = new AppRequest(window.location.hash.replace("#", ""), "GET");
+                async function load_page(path) {
+                    let request = new AppRequest(path, "GET");
 
                     await processRequest(request);
                 }
 
                 // TODO this could be better.
-                window.process_current_page = process_current_page;
+                window.load_page = load_page;
 
                 window.addEventListener('popstate', async function () {
-                    await process_current_page();
+                    await load_page(window.location.hash.replace("#", ""));
                 });
 
                 run();
