@@ -13,9 +13,10 @@ async function processIncomingData(data, peer) {
 
     if (dataAsJson.type === "request") {
         let appRequest = createAppRequest(dataAsJson);
-
+        let start = new Date();
         let appResponse = await app(appRequest);
 
+        console.log(`request process time: ${new Date().getTime() - start}`);
         peer.send(JSON.stringify({
             type: 'response',
             request_id: dataAsJson.request_id,
@@ -23,9 +24,11 @@ async function processIncomingData(data, peer) {
         }));
 
     } else if (dataAsJson.type === "response") {
-        const resolvedForOriginalRequest = window.simplePeerAdapter.activeRequestsResolvers[dataAsJson.request_id];
+        const resolvedForOriginalRequest = window.simplePeerAdapter.activeRequestsResolvers[dataAsJson.request_id].resolve;
+        const start = window.simplePeerAdapter.activeRequestsResolvers[dataAsJson.request_id].start;
 
         resolvedForOriginalRequest(dataAsJson.message);
+        console.log(`response time: ${new Date().getTime() - start}`)
 
         delete window.simplePeerAdapter.activeRequestsResolvers[dataAsJson.request_id];
     }
@@ -92,7 +95,10 @@ function setup() {
                 let peer = window.simplePeerAdapter.peers[device_id];
                 let request_id = uuidv4();
 
-                window.simplePeerAdapter.activeRequestsResolvers[request_id] = resolve;
+                window.simplePeerAdapter.activeRequestsResolvers[request_id] = {
+                    resolve,
+                    start: new Date().getTime()
+                }
 
                 let chunk = JSON.stringify({
                     type: 'request',
