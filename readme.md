@@ -42,3 +42,5 @@ The app needs to be running in test mode before the tests can be run.
     ```
     diesel database --reset
     ```
+  
+  
