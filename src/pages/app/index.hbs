@@ -17,6 +17,19 @@
                     app_start
                 } from '/node_modules/@logankeenan/shared-spaces-app/shared_spaces_app.js';
                 import '/static/webrtc-adapter.js';
+
+                document.addEventListener("click", async function (event) {
+                    if (event.target.tagName == "A") {
+                        if (event.target.hasAttribute("background")) {
+                            let path = event.target.href.split("#")[1];
+                            event.preventDefault()
+                            let appRequest = new AppRequest(path, 'GET');
+
+                            await processRequest(appRequest);
+                        }
+                    }
+                });
+
                 window.wsAdapter = {
                     activeConnectionOpenResolve: undefined,
                     activeConnectionOpenPromise: undefined,
@@ -52,7 +65,7 @@
                             };
                         }
                     },
-                    sendMessage: async function(message) {
+                    sendMessage: async function (message) {
                         await this.activeConnectionOpenPromise;
                         this.activeConnection.send(message);
                     }
@@ -132,7 +145,7 @@
                     } else {
                         try {
                             morphdom(document.documentElement, response.body, morphdomOptions);
-                        } catch(error)  {
+                        } catch (error) {
                             console.log('error:', error);
 
                         }
