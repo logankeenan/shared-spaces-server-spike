@@ -1,4 +1,6 @@
-# Shared Spaces
+# Shared Spaces Server Spike
+
+An app I created in 2020 to help me learn Rust and experiment with a few ideas. See [shared-spaces-app-spike](https://github.com/logankeenan/shared-spaces-app-spike) for details
 
 ## Dependencies
 * rust
