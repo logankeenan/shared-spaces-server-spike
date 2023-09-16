@@ -1,6 +1,8 @@
 # Shared Spaces Server Spike
 
-An app I created in 2020 to help me learn Rust and experiment with a few ideas. See [shared-spaces-app-spike](https://github.com/logankeenan/shared-spaces-app-spike) for details
+This is a POC I created back in 2020. It's an app that allows users to share files P2P in-browser via WebRTC.
+
+See [Past Rust Experiments: Positivelys & Shared Spaces](https://logankeenan.com/posts/past-rust-experiments-positivelys-and-shared-spaces/) for more details
 
 ## Dependencies
 * rust
